@@ -5,8 +5,8 @@ from flask_login import UserMixin, login_user, LoginManager, login_required, cur
 
 app = Flask(__name__)
 
-login_manager = LoginManager()
-login_manager.init_app(app)
+login_manager = LoginManager() # Create the LoginManager class
+login_manager.init_app(app) # Configure your actual application object for login
 
 app.config['SECRET_KEY'] = 'any-secret-key-you-choose'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
