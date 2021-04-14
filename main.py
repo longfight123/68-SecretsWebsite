@@ -22,10 +22,10 @@ class User(UserMixin, db.Model):
 #Line below only required once, when creating DB. 
 # db.create_all()
 
-#provide a user_loader callback
+# provide a user_loader callback
 @login_manager.user_loader
-def load_user(user_id):
-    return User.get(user_id)
+def load_user(user_id): # The callback is supposed to reload the user object from the user ID stored in the session
+    return User.query.get(user_id)
 
 @app.route('/')
 def home():
@@ -46,27 +46,38 @@ def register():
         )
         db.session.add(new_user)
         db.session.commit()
+        login_user(new_user)
         return redirect(url_for('secrets', name=request.form['name']))
     return render_template("register.html")
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        user = User.query.filter_by(email=request.form.get('email')).first() # obtain the sqlalchemy user object
+        if check_password_hash(pwhash=user.password, password=request.form.get('password')): # validate password
+            login_user(user) # login the user, user should be an instance of our User class
+            flash('Logged in successfully')
+            return redirect(url_for('secrets', name=user.name))
     return render_template("login.html")
 
 #Pass in the name to the template using jinja
 @app.route('/secrets')
+@login_required # add decorator to require a user to be logged in
 def secrets():
-    name = request.args['name']
+    name = request.args.get('name')
     return render_template("secrets.html", name=name)
 
 
 @app.route('/logout')
+@login_required # add decorator to require a user to be logged in
 def logout():
-    pass
+    logout_user()
+    return redirect(url_for('home'))
 
 
 @app.route('/download')
+@login_required
 def download():
     return send_from_directory(directory='static', filename='files/cheat_sheet.pdf')
 
