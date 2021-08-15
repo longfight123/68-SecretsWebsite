@@ -14,6 +14,7 @@ from flask import Flask, render_template, request, url_for, redirect, flash, sen
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
+import os
 
 app = Flask(__name__)
 
@@ -21,7 +22,8 @@ login_manager = LoginManager() # Create the LoginManager class
 login_manager.init_app(app) # Configure your actual application object for login
 
 app.config['SECRET_KEY'] = 'any-secret-key-you-choose'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('postgresql://qbmaenaqfdanct:8d070daff2d98986377fcd36ba35ae894198ad005003c77dc4451e3fe3cf9621@ec2-18-204-74-74.compute-1.amazonaws.com:5432/d1a4ssg7sfff7b',
+                                                       'sqlite:///users.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -49,7 +51,10 @@ class User(UserMixin, db.Model): # Inherit User Mixin in User Class
 
 
 #Line below only required once, when creating DB. 
-# db.create_all()
+try:
+    db.create_all()
+except:
+    pass
 
 
 # provide a user_loader callback
